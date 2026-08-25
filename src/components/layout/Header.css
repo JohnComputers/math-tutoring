@@ -1,0 +1,287 @@
+/* =====================================================================
+   Site header + mobile drawer
+   ===================================================================== */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: var(--surface-deep);
+  /* Transparent-ish until scrolled, then a solid bar. */
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.site-header.is-scrolled {
+  background: var(--surface-deep);
+  box-shadow: 0 2px 20px rgba(20, 9, 7, 0.3);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: var(--header-height);
+}
+
+/* ---- brand ---------------------------------------------------------- */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--brand-cream);
+  min-width: 0;
+}
+
+.brand__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--brand-cream);
+  color: var(--surface-deep);
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.1;
+}
+
+.brand__name {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand__sub {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-on-dark-muted);
+}
+
+@media (min-width: 768px) {
+  .brand__name {
+    font-size: var(--text-lg);
+  }
+}
+
+/* ---- desktop nav ----------------------------------------------------- */
+
+.site-nav {
+  display: none;
+}
+
+@media (min-width: 980px) {
+  .site-nav {
+    display: block;
+  }
+}
+
+.site-nav__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-nav__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding-inline: var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--text-on-dark);
+  border-radius: var(--radius-pill);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.site-nav__link:hover {
+  background: rgba(246, 223, 145, 0.14);
+  color: var(--brand-cream);
+}
+
+/* Active state uses an underline as well as colour, so it does not rely on
+   colour alone to communicate position. */
+.site-nav__link.is-active {
+  color: var(--brand-cream);
+  font-weight: 600;
+}
+
+.site-nav__link.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand-cream);
+}
+
+/* ---- header actions --------------------------------------------------- */
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.site-header__cta {
+  display: none;
+}
+
+@media (min-width: 560px) {
+  .site-header__cta {
+    display: inline-flex;
+  }
+}
+
+.menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border-radius: var(--radius-md);
+  color: var(--brand-cream);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.menu-toggle:hover {
+  background: rgba(246, 223, 145, 0.15);
+}
+
+@media (min-width: 980px) {
+  .menu-toggle {
+    display: none;
+  }
+}
+
+/* ---- mobile drawer ---------------------------------------------------- */
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-drawer) - 1);
+  background: rgba(29, 14, 11, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    visibility var(--duration-base);
+}
+
+.drawer-backdrop.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.drawer {
+  position: fixed;
+  top: var(--header-height);
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-drawer);
+  width: min(340px, 86vw);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-5);
+  padding-bottom: max(var(--space-6), env(safe-area-inset-bottom));
+  background: var(--surface-white);
+  box-shadow: -8px 0 32px rgba(20, 9, 7, 0.25);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.drawer.is-open {
+  transform: translateX(0);
+}
+
+@media (min-width: 980px) {
+  .drawer,
+  .drawer-backdrop {
+    display: none;
+  }
+}
+
+.drawer__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.drawer__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  /* Generous target: this is the primary navigation on a phone. */
+  min-height: 52px;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--text-on-light);
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.drawer__link:hover,
+.drawer__link:active {
+  background: rgba(43, 27, 24, 0.06);
+}
+
+.drawer__link.is-active {
+  background: rgba(201, 92, 72, 0.12);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.drawer__link svg {
+  color: var(--text-on-light-muted);
+  flex-shrink: 0;
+}
+
+.drawer__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line-on-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer,
+  .drawer-backdrop {
+    transition: none;
+  }
+}

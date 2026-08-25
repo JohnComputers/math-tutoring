@@ -1,0 +1,144 @@
+/* =====================================================================
+   Design tokens
+   =====================================================================
+   The palette comes from the tutoring flyer: a deep red-brown ground, warm
+   cream type, coral accents, and an off-white for the light sections.
+
+   The five brand colours are also written at runtime from `settings.site.theme`
+   (see `useSiteContent`), so the admin can retune the palette without a rebuild.
+   Everything else here derives from them, which is why changing one value
+   restyles the whole site coherently instead of leaving orphaned hardcoded hexes.
+   ===================================================================== */
+
+:root {
+  /* ---- brand (admin-overridable) ---- */
+  --brand-primary: #662720;
+  --brand-cream: #f6df91;
+  /* Deepened from the flyer's ~#C95C48 to clear WCAG AA. The brighter original
+     scores only 3.6:1 as text on the light surfaces and 4.1:1 behind white button
+     text, both below the 4.5:1 floor. This shade keeps the coral identity and
+     passes everywhere. The bright original survives in the low-alpha decorative
+     fills below, where contrast is not a factor. */
+  --brand-coral: #b4472f;
+  --brand-light: #f4f1ea;
+  --brand-dark: #2b1b18;
+
+  /* ---- derived surfaces ---- */
+  --surface-deep: #4d1c17;
+  --surface-dark: var(--brand-primary);
+  --surface-dark-soft: #74332b;
+  --surface-light: var(--brand-light);
+  --surface-white: #fffdf8;
+  --surface-cream: #fbf1d6;
+
+  /* ---- text ---- */
+  --text-on-dark: #fdf6e6;
+  --text-on-dark-muted: #e4c9b8;
+  --text-on-light: var(--brand-dark);
+  --text-on-light-muted: #6b5249;
+
+  /* ---- lines & accents ---- */
+  --line-on-dark: rgba(246, 223, 145, 0.22);
+  --line-on-light: rgba(43, 27, 24, 0.12);
+  --accent: var(--brand-coral);
+  --accent-strong: #98392a;
+  --highlight: var(--brand-cream);
+
+  /* ---- status ---- */
+  --status-success: #2f7a52;
+  --status-success-soft: #e3f3e9;
+  --status-error: #b3261e;
+  --status-error-soft: #fbe9e7;
+  --status-warning: #9a6410;
+  --status-warning-soft: #fdf1dc;
+  --status-info: #2f5d8a;
+  --status-info-soft: #e6eef7;
+
+  /* ---- typography ---- */
+  --font-display: 'Titan One', 'Poppins', system-ui, -apple-system, sans-serif;
+  --font-body: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Fluid scale: min at 360px, max at 1280px. Keeps headings large on desktop
+     without them overflowing an iPhone SE. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: clamp(1.0625rem, 0.99rem + 0.32vw, 1.1875rem);
+  --text-xl: clamp(1.1875rem, 1.08rem + 0.48vw, 1.4375rem);
+  --text-2xl: clamp(1.375rem, 1.19rem + 0.8vw, 1.875rem);
+  --text-3xl: clamp(1.625rem, 1.3rem + 1.45vw, 2.5rem);
+  --text-4xl: clamp(2rem, 1.5rem + 2.2vw, 3.25rem);
+  --text-5xl: clamp(2.375rem, 1.6rem + 3.4vw, 4.25rem);
+
+  --leading-tight: 1.1;
+  --leading-snug: 1.28;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+
+  /* ---- spacing (4px base) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* Vertical rhythm between page sections, tighter on phones. */
+  --section-y: clamp(3.5rem, 2.2rem + 5.5vw, 6.5rem);
+  --gutter: clamp(1.125rem, 0.85rem + 1.2vw, 2rem);
+  --container: 1160px;
+  --container-narrow: 760px;
+
+  /* ---- radii ---- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* ---- shadows: warm-tinted, never neutral grey ---- */
+  --shadow-sm: 0 1px 2px rgba(43, 27, 24, 0.07), 0 2px 6px rgba(43, 27, 24, 0.05);
+  --shadow-md: 0 4px 10px rgba(43, 27, 24, 0.08), 0 12px 28px rgba(43, 27, 24, 0.07);
+  --shadow-lg: 0 10px 24px rgba(43, 27, 24, 0.11), 0 26px 60px rgba(43, 27, 24, 0.1);
+  --shadow-dark: 0 12px 34px rgba(20, 9, 7, 0.36);
+  --shadow-focus: 0 0 0 3px rgba(201, 92, 72, 0.45);
+
+  /* ---- motion ---- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 420ms;
+
+  /* ---- layout ---- */
+  --header-height: 64px;
+  --z-header: 100;
+  --z-drawer: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+
+  /* Minimum comfortable touch target. Every button and slot honours this. */
+  --tap-target: 44px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-height: 76px;
+  }
+}
+
+/* Users who ask for less motion get less motion — the parallax and reveal hooks
+   read this too, so it is not merely a CSS-level opt-out. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 1ms;
+    --duration-base: 1ms;
+    --duration-slow: 1ms;
+  }
+}

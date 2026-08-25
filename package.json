@@ -1,0 +1,41 @@
+{
+  "name": "math-tutoring",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Mobile-first tutoring website with Firebase-backed scheduling and an admin CMS.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "setup:admin": "node scripts/setup-admin.mjs",
+    "seed": "node scripts/seed.mjs",
+    "test:rules": "node scripts/free-emulator-ports.mjs && firebase emulators:exec --only firestore,auth --project rules-test \"vitest run --config vitest.rules.config.ts\"",
+    "test:all": "npm run test && npm run test:rules",
+    "emulators": "firebase emulators:start --project demo-math-tutoring",
+    "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes,storage",
+    "emulators:free": "node scripts/free-emulator-ports.mjs"
+  },
+  "dependencies": {
+    "firebase": "^11.1.0",
+    "lucide-react": "^0.469.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.1"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "@types/node": "^22.20.1",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "firebase-admin": "^13.0.2",
+    "firebase-tools": "^13.35.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,687 @@
+/* =====================================================================
+   Homepage sections
+   =====================================================================
+   Mobile-first: every block starts as a single column and only becomes a
+   grid once there is genuinely room. Nothing here relies on a fixed width.
+   ===================================================================== */
+
+/* ---- HERO ------------------------------------------------------------ */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 15% 0%, #7a3025 0%, transparent 60%),
+    var(--surface-dark);
+  color: var(--text-on-dark);
+  padding-block: clamp(3rem, 2rem + 6vw, 6rem) clamp(3.5rem, 2.4rem + 6vw, 6.5rem);
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(2.5rem, 1.6rem + 4vw, 4rem);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .hero__inner {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+
+.hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-5);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-cream);
+  background: rgba(246, 223, 145, 0.14);
+  border: 1px solid rgba(246, 223, 145, 0.28);
+  border-radius: var(--radius-pill);
+}
+
+.hero__heading {
+  font-size: var(--text-5xl);
+  color: var(--brand-cream);
+  /* Slight negative tracking keeps a big display face from looking loose. */
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.hero__subheading {
+  max-width: 44ch;
+  margin-top: var(--space-5);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--text-on-dark-muted);
+}
+
+.hero__subjects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+}
+
+.hero__subject {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-on-dark);
+  background: rgba(255, 253, 248, 0.1);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+/* Full-width buttons on the narrowest phones — easier to hit, looks intentional. */
+@media (max-width: 400px) {
+  .hero__actions .btn {
+    width: 100%;
+  }
+}
+
+.hero__price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-top: var(--space-7, 1.75rem);
+  color: var(--brand-cream);
+}
+
+.hero__price-amount {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  line-height: 1;
+}
+
+.hero__price-unit {
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-on-dark-muted);
+}
+
+/* ---- hero portrait ---- */
+
+.hero__portrait-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.hero__portrait-frame {
+  position: relative;
+  width: min(320px, 100%);
+  aspect-ratio: 4 / 5;
+  margin-inline: auto;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 3px solid rgba(246, 223, 145, 0.4);
+  background: rgba(255, 253, 248, 0.06);
+  box-shadow: var(--shadow-dark);
+}
+
+@media (min-width: 900px) {
+  .hero__portrait-frame {
+    width: 100%;
+    max-width: 400px;
+    margin-inline: 0 auto;
+  }
+}
+
+.hero__portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__portrait-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 5rem);
+  color: rgba(246, 223, 145, 0.55);
+  background: rgba(20, 9, 7, 0.25);
+}
+
+.hero__intro {
+  max-width: 42ch;
+  margin-inline: auto;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--text-on-dark-muted);
+  text-align: center;
+}
+
+@media (min-width: 900px) {
+  .hero__intro {
+    text-align: left;
+    margin-inline: 0;
+  }
+}
+
+/* ---- ABOUT ----------------------------------------------------------- */
+
+.about {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(2.5rem, 1.6rem + 4vw, 4rem);
+}
+
+@media (min-width: 900px) {
+  .about {
+    grid-template-columns: 0.8fr 1.2fr;
+    align-items: start;
+  }
+}
+
+.about__media {
+  position: relative;
+  width: min(340px, 100%);
+  margin-inline: auto;
+}
+
+@media (min-width: 900px) {
+  .about__media {
+    width: 100%;
+    position: sticky;
+    /* Stays alongside the bio while it scrolls, without hiding under the header. */
+    top: calc(var(--header-height) + var(--space-6));
+  }
+}
+
+.about__photo {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.about__photo--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-cream);
+  color: rgba(102, 39, 32, 0.4);
+}
+
+.about__badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: calc(var(--space-6) * -1) var(--space-4) 0;
+  padding: var(--space-4) var(--space-5);
+  position: relative;
+  background: var(--surface-dark);
+  color: var(--text-on-dark);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.about__badge-name {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--brand-cream);
+}
+
+.about__badge-role {
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  color: var(--text-on-dark-muted);
+}
+
+.about__bio {
+  max-width: 62ch;
+}
+
+.about__quals {
+  margin-top: var(--space-10);
+}
+
+.about__quals-title,
+.about__philosophy-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  margin-bottom: var(--space-4);
+}
+
+.about__quals-list {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .about__quals-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.about__qual {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  color: var(--text-on-light);
+  background: var(--surface-white);
+  border: 1px solid var(--line-on-light);
+  border-radius: var(--radius-md);
+}
+
+.about__qual svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--status-success);
+}
+
+.about__philosophy {
+  margin-top: var(--space-10);
+  padding: var(--space-6);
+  background: var(--surface-cream);
+  border-radius: var(--radius-lg);
+  /* Coral edge marks it as a pull-quote rather than more body copy. */
+  border-left: 4px solid var(--accent);
+}
+
+/* ---- SUBJECTS -------------------------------------------------------- */
+
+.subject-grid,
+.why-grid,
+.pricing-grid,
+.testimonial-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-5);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 620px) {
+  .subject-grid,
+  .why-grid,
+  .testimonial-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1000px) {
+  .subject-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .why-grid,
+  .testimonial-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.subject-card,
+.why-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.subject-card__title,
+.why-card__title {
+  margin-bottom: 0;
+}
+
+.subject-card__grade {
+  align-self: flex-start;
+}
+
+.subject-card__body {
+  font-size: var(--text-sm);
+  flex-grow: 1;
+}
+
+.subject-card__price {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--brand-cream);
+}
+
+.subject-grid__cta {
+  margin-top: var(--space-10);
+}
+
+/* ---- PRICING ---------------------------------------------------------- */
+
+@media (min-width: 700px) {
+  .pricing-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+}
+
+/* A lone tier should not stretch across the full width. */
+.pricing-grid--single {
+  max-width: 26rem;
+  margin-inline: auto;
+}
+
+.pricing-card {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  text-align: center;
+  padding-top: var(--space-8);
+}
+
+.pricing-card--featured {
+  border-color: var(--accent);
+  border-width: 2px;
+  box-shadow: var(--shadow-md);
+}
+
+.pricing-card__ribbon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: var(--space-1) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.pricing-card__label {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-on-light-muted);
+}
+
+.pricing-card__price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+  color: var(--brand-primary);
+}
+
+.pricing-card__currency {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  align-self: flex-start;
+  margin-top: 0.3em;
+}
+
+.pricing-card__amount {
+  font-family: var(--font-display);
+  font-size: var(--text-5xl);
+  line-height: 1;
+}
+
+.pricing-card__unit {
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-on-light-muted);
+  margin-left: var(--space-1);
+}
+
+.pricing-card__duration {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-on-light-muted);
+}
+
+.pricing-card__body {
+  flex-grow: 1;
+  font-size: var(--text-sm);
+}
+
+.pricing-card .btn {
+  margin-top: var(--space-2);
+}
+
+.pricing-note {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--space-2);
+  max-width: 56ch;
+  margin: var(--space-8) auto 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--text-on-light-muted);
+  text-align: left;
+}
+
+.pricing-note svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--accent);
+}
+
+/* ---- TESTIMONIALS ------------------------------------------------------ */
+
+.testimonial-card {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-8);
+}
+
+.testimonial-card__mark {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  color: rgba(201, 92, 72, 0.18);
+}
+
+.testimonial-card__rating {
+  display: flex;
+  gap: 2px;
+}
+
+.testimonial-card__star {
+  color: rgba(43, 27, 24, 0.2);
+}
+
+.testimonial-card__star.is-filled {
+  color: #d9a521;
+  fill: #d9a521;
+}
+
+.testimonial-card__quote {
+  flex-grow: 1;
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-on-light);
+}
+
+.testimonial-card__author {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line-on-light);
+}
+
+.testimonial-card__name {
+  font-weight: 600;
+  color: var(--text-on-light);
+}
+
+.testimonial-card__role {
+  font-size: var(--text-xs);
+  color: var(--text-on-light-muted);
+}
+
+/* ---- SCHEDULE CTA ------------------------------------------------------ */
+
+.schedule-cta {
+  background:
+    linear-gradient(135deg, var(--accent-strong) 0%, var(--brand-primary) 65%);
+  color: var(--text-on-dark);
+}
+
+.schedule-cta__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.schedule-cta__heading {
+  font-size: var(--text-4xl);
+  color: var(--brand-cream);
+  text-wrap: balance;
+}
+
+.schedule-cta__subheading {
+  max-width: 46ch;
+  margin: var(--space-4) auto 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: rgba(253, 246, 230, 0.88);
+}
+
+.schedule-cta__actions {
+  margin-top: var(--space-8);
+}
+
+.schedule-cta__note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  font-size: var(--text-sm);
+  color: rgba(253, 246, 230, 0.75);
+}
+
+/* ---- CONTACT ------------------------------------------------------------ */
+
+.contact {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(2.5rem, 1.6rem + 4vw, 4rem);
+}
+
+@media (min-width: 900px) {
+  .contact {
+    grid-template-columns: 1.05fr 0.95fr;
+    align-items: center;
+  }
+}
+
+.contact__actions {
+  margin-top: var(--space-8);
+}
+
+@media (max-width: 400px) {
+  .contact__actions .btn {
+    width: 100%;
+  }
+}
+
+.contact__details {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.contact__detail {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface-white);
+  border: 1px solid var(--line-on-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.contact__detail-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-on-light-muted);
+  margin-bottom: 2px;
+}
+
+.contact__detail-value {
+  display: inline-flex;
+  align-items: center;
+  /* Tappable phone/email links need the full target height, even though the
+     text itself is only ~27px tall. */
+  min-height: var(--tap-target);
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-on-light);
+  text-decoration: none;
+  /* Long emails must wrap rather than push the card wider than the screen. */
+  overflow-wrap: anywhere;
+}
+
+a.contact__detail-value:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
+.contact__socials {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.contact__socials .contact__detail-value {
+  font-size: var(--text-base);
+}

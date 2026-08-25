@@ -1,0 +1,115 @@
+name: Deploy to GitHub Pages
+
+# Builds the site and publishes it to GitHub Pages on every push to the default branch.
+#
+# The Firebase config is injected from repository secrets at build time. Those values are
+# not secrets in the cryptographic sense — a Firebase web config is public in every
+# deployed client — but keeping them out of the repository means a fork does not write
+# into your database, and rotating a project does not require a code change.
+#
+# What actually protects the data is firestore.rules and storage.rules. Deploy those
+# separately with `npm run deploy:rules`; this workflow only publishes the front end.
+
+on:
+  push:
+    branches: [main, master]
+  # Lets you re-deploy from the Actions tab without pushing a commit.
+  workflow_dispatch:
+
+# Least privilege: read the repo, write Pages, and mint an OIDC token for the deployment.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time. `cancel-in-progress: false` so a queued deploy finishes
+# rather than being cancelled halfway through publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        # `npm ci` installs exactly what package-lock.json pins — reproducible, and it
+        # fails loudly if the lockfile is out of step with package.json.
+        run: npm ci
+
+      - name: Run tests
+        # Unit tests only: the security-rules suite needs the Firestore emulator, which
+        # is worth running locally but not worth the CI minutes on every push. Run it
+        # with `npm run test:rules` before changing firestore.rules.
+        run: npm test
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Work out the base path
+        id: base
+        # A project site is served from https://<user>.github.io/<repo>/, so assets need
+        # the /<repo>/ prefix. A user/organisation site (<user>.github.io) and any custom
+        # domain are served from the root and need /.
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          OWNER="${GITHUB_REPOSITORY%/*}"
+          if [ -f "public/CNAME" ] || [ "$REPO_NAME" = "${OWNER}.github.io" ]; then
+            echo "path=/" >> "$GITHUB_OUTPUT"
+            echo "Custom domain or user site detected -> base path '/'"
+          else
+            echo "path=/${REPO_NAME}/" >> "$GITHUB_OUTPUT"
+            echo "Project site detected -> base path '/${REPO_NAME}/'"
+          fi
+
+      - name: Build
+        env:
+          VITE_BASE_PATH: ${{ steps.base.outputs.path }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+        run: npm run build
+
+      - name: Warn if Firebase secrets are missing
+        # A build with no config still succeeds and deploys — it just shows the "setup
+        # needed" screen instead of taking bookings. Better to say so plainly in the log
+        # than to let someone discover it from the live site.
+        if: ${{ secrets.VITE_FIREBASE_PROJECT_ID == '' }}
+        run: |
+          echo "::warning title=Firebase not configured::No VITE_FIREBASE_* secrets were found. The site will deploy but scheduling and the admin dashboard will be disabled. Add them under Settings -> Secrets and variables -> Actions."
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the built site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// =====================================================================
+//  Firebase Storage security rules
+// =====================================================================
+//
+//  Storage holds exactly one kind of object: the profile photo shown on the public site.
+//
+//  Storage rules cannot read Firestore, so the `admins/{uid}` document that authorises
+//  everything else is invisible here. Authorisation therefore uses a custom auth claim
+//  instead. `scripts/setup-admin.mjs` sets the claim and the Firestore document together,
+//  so the two never drift apart.
+//
+//  Note: a custom claim is baked into the ID token and refreshes at most hourly, so
+//  revoking admin access takes effect in Firestore immediately but in Storage only after
+//  the token refreshes. For a single-owner tutoring site that is an acceptable trade;
+//  to revoke immediately, disable the Firebase Auth user, which invalidates the token.
+// =====================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function isReasonableImage() {
+      return request.resource != null
+        && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+    }
+
+    // Everything the website displays. World-readable — these are published assets —
+    // but only an admin can put anything there, and only if it is genuinely an image of
+    // a sane size. Without the content-type check, "profile photo" upload becomes
+    // "arbitrary file host".
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isReasonableImage();
+      allow delete: if isAdmin();
+    }
+
+    // Deny-by-default for every other path, including any added later.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

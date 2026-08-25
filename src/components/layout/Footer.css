@@ -1,0 +1,146 @@
+.site-footer {
+  background: var(--surface-deep);
+  color: var(--text-on-dark);
+  padding-top: var(--space-16);
+}
+
+.site-footer__inner {
+  display: grid;
+  gap: var(--space-10);
+  padding-bottom: var(--space-12);
+}
+
+@media (min-width: 640px) {
+  .site-footer__inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-8) var(--space-6);
+  }
+}
+
+@media (min-width: 1000px) {
+  .site-footer__inner {
+    /* Brand column gets more room; the three link columns are equal. */
+    grid-template-columns: 1.6fr 1fr 1.2fr 1fr;
+  }
+}
+
+.site-footer__brand .brand__mark {
+  margin-bottom: var(--space-4);
+}
+
+.site-footer__name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--brand-cream);
+  margin-bottom: var(--space-2);
+}
+
+.site-footer__tagline {
+  max-width: 34ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--text-on-dark-muted);
+}
+
+.site-footer__socials {
+  display: flex;
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-5) 0 0;
+  padding: 0;
+}
+
+.site-footer__social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border-radius: var(--radius-md);
+  color: var(--brand-cream);
+  background: rgba(246, 223, 145, 0.1);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.site-footer__social:hover {
+  background: rgba(246, 223, 145, 0.22);
+}
+
+.site-footer__heading {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-cream);
+  margin-bottom: var(--space-4);
+}
+
+.site-footer__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.site-footer__links a,
+.site-footer__plain {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* Full 44px tap targets: the footer is mostly used on phones, and these are
+     real navigation links, not decoration. */
+  min-height: var(--tap-target);
+  font-size: var(--text-sm);
+  color: var(--text-on-dark-muted);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.site-footer__links a:hover {
+  color: var(--brand-cream);
+  text-decoration: underline;
+}
+
+.site-footer__plain {
+  color: var(--text-on-dark-muted);
+}
+
+.site-footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-5);
+  padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line-on-dark);
+}
+
+.site-footer__copyright {
+  font-size: var(--text-xs);
+  color: var(--text-on-dark-muted);
+}
+
+/* Deliberately understated: functional for the owner, uninviting to visitors.
+   Quiet, but not illegible — at 0.55 alpha this scored 3.72:1 against the deep
+   surface, below the 4.5:1 floor for small text. 0.7 reads as 5.2:1 and still
+   recedes next to the copyright line beside it. Understated is a visual weight,
+   not an excuse to fail contrast. It also keeps a full-size tap target, since
+   the owner has to hit it on a phone. */
+.site-footer__admin {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-target);
+  font-size: var(--text-xs);
+  color: rgba(228, 201, 184, 0.7);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.site-footer__admin:hover {
+  color: var(--text-on-dark-muted);
+  text-decoration: underline;
+}

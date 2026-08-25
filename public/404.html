@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Redirecting…</title>
+    <meta name="robots" content="noindex" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 2rem;
+        text-align: center;
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        background: #662720;
+        color: #f6df91;
+      }
+      a {
+        color: #f6df91;
+      }
+      .spinner {
+        width: 28px;
+        height: 28px;
+        margin: 0 auto 1rem;
+        border: 3px solid rgba(246, 223, 145, 0.3);
+        border-top-color: #f6df91;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .spinner {
+          animation-duration: 3s;
+        }
+      }
+    </style>
+    <script>
+      /*
+       * GitHub Pages serves this file for any path it cannot find. The app itself uses
+       * hash routing (`/#/schedule`), which never reaches the server, so this page is a
+       * safety net rather than the main mechanism — it catches someone who typed or
+       * followed a non-hash path such as `/schedule`.
+       *
+       * The repository segment has to be preserved: a project site lives under
+       * `/<repo>/`, and redirecting to a bare `/` would leave the site entirely.
+       */
+      (function redirectToHashRoute() {
+        var pathname = window.location.pathname;
+        var segments = pathname.split('/').filter(Boolean);
+
+        // On a project site the first segment is the repo name and must be kept as the
+        // base. On a user/organisation site or custom domain there is no such segment,
+        // which is why this is decided at runtime rather than baked in at build time.
+        var isProjectSite =
+          window.location.hostname.endsWith('.github.io') && segments.length > 0;
+        var base = isProjectSite ? '/' + segments[0] + '/' : '/';
+        var route = isProjectSite ? segments.slice(1).join('/') : segments.join('/');
+
+        var target = base + '#/' + route + window.location.search;
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <div>
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Taking you to the right page…</p>
+      <p><a href="/">Continue to the homepage</a> if nothing happens.</p>
+    </div>
+  </body>
+</html>

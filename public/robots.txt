@@ -1,0 +1,7 @@
+# Allow indexing of the public site, but keep the admin area out of search results.
+User-agent: *
+Allow: /
+Disallow: /#/admin
+
+# Update this once the site is live, e.g.
+# Sitemap: https://yourname.github.io/math-tutoring/sitemap.xml

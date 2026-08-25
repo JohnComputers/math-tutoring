@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-ssr/
+*.local
+
+# environment — never commit real values
+.env
+.env.*
+!.env.example
+
+# Firebase admin credentials. A service-account key grants FULL access to the
+# project, bypassing every security rule. It must never reach the repository.
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# os
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

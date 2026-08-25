@@ -1,0 +1,221 @@
+/* =====================================================================
+   Decorative mathematics
+   =====================================================================
+   Positions are hand-placed percentages rather than a random scatter: a
+   deliberate arrangement keeps the busy elements away from the middle of
+   the page, where headings and buttons live.
+   ===================================================================== */
+
+.math-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none; /* never swallow a tap meant for a control */
+  user-select: none;
+  z-index: 0;
+}
+
+.math-bg__layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+/* ---- opacity per surface -------------------------------------------
+   Tuned so body copy above still clears WCAG AA. The dark variants sit
+   lower because cream-on-red is a higher-contrast pairing to begin with. */
+
+.math-bg--hero {
+  color: var(--brand-cream);
+  opacity: 0.13;
+}
+
+.math-bg--dark {
+  color: var(--brand-cream);
+  opacity: 0.085;
+}
+
+.math-bg--light {
+  color: var(--brand-primary);
+  opacity: 0.055;
+}
+
+/* ---- layer 3: oversized glyphs -------------------------------------- */
+
+.math-bg__glyph {
+  position: absolute;
+  font-family: var(--font-display);
+  line-height: 1;
+  color: currentColor;
+}
+
+.math-bg__glyph--1 {
+  top: 6%;
+  left: 4%;
+  font-size: clamp(6rem, 18vw, 15rem);
+}
+
+.math-bg__glyph--2 {
+  bottom: 4%;
+  right: 6%;
+  font-size: clamp(5rem, 14vw, 12rem);
+}
+
+.math-bg__glyph--3 {
+  top: 44%;
+  right: 12%;
+  font-size: clamp(4rem, 10vw, 8rem);
+}
+
+.math-bg__glyph--4 {
+  bottom: 30%;
+  left: 14%;
+  font-size: clamp(4rem, 11vw, 9rem);
+}
+
+.math-bg__glyph--5 {
+  top: 14%;
+  right: 32%;
+  font-size: clamp(3.5rem, 9vw, 7rem);
+}
+
+/* ---- layer 2: geometry ---------------------------------------------- */
+
+.math-bg__figure {
+  position: absolute;
+  color: currentColor;
+  width: clamp(90px, 14vw, 170px);
+  height: auto;
+}
+
+.math-bg__figure-label {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-style: italic;
+  fill: currentColor;
+}
+
+.math-bg__figure--circle {
+  top: 10%;
+  right: 8%;
+}
+
+.math-bg__figure--triangle {
+  bottom: 12%;
+  left: 7%;
+}
+
+.math-bg__figure--axes {
+  top: 52%;
+  left: 3%;
+}
+
+.math-bg__figure--arc {
+  bottom: 22%;
+  right: 18%;
+}
+
+/* ---- layer 1: equations --------------------------------------------- */
+
+.math-bg__eq {
+  position: absolute;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(0.85rem, 1.5vw, 1.35rem);
+  white-space: nowrap;
+  color: currentColor;
+}
+
+.math-bg__eq--1 {
+  top: 22%;
+  left: 8%;
+  transform: rotate(-6deg);
+}
+
+.math-bg__eq--2 {
+  bottom: 18%;
+  right: 5%;
+  transform: rotate(4deg);
+}
+
+.math-bg__eq--3 {
+  top: 68%;
+  left: 22%;
+  transform: rotate(3deg);
+}
+
+.math-bg__eq--4 {
+  top: 8%;
+  left: 44%;
+  transform: rotate(-3deg);
+}
+
+.math-bg__eq--5 {
+  top: 38%;
+  right: 26%;
+}
+
+.math-bg__eq--6 {
+  bottom: 38%;
+  left: 4%;
+  transform: rotate(-8deg);
+}
+
+.math-bg__eq--7 {
+  top: 80%;
+  right: 8%;
+  transform: rotate(-4deg);
+}
+
+.math-bg__eq--8 {
+  top: 30%;
+  left: 34%;
+}
+
+/* ---- fractions ------------------------------------------------------- */
+
+.math-bg__frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1.05;
+}
+
+.math-bg__frac-top {
+  padding-inline: 0.25em;
+}
+
+.math-bg__frac-bottom {
+  padding-inline: 0.25em;
+  border-top: 2px solid currentColor;
+}
+
+/* ---- small screens ---------------------------------------------------
+   Phones get a lighter arrangement: less to paint, and less risk of a glyph
+   crowding a heading in a narrow column. */
+
+@media (max-width: 767px) {
+  .math-bg__eq--2,
+  .math-bg__eq--4,
+  .math-bg__eq--7,
+  .math-bg__eq--8,
+  .math-bg__glyph--5,
+  .math-bg__figure--arc,
+  .math-bg__figure--axes {
+    display: none;
+  }
+
+  .math-bg--light {
+    opacity: 0.045;
+  }
+}
+
+/* Parallax is disabled under reduced motion by the hook; the layers simply
+   sit still, which is exactly the intended fallback. */
+@media (prefers-reduced-motion: reduce) {
+  .math-bg__layer {
+    will-change: auto;
+    transform: none !important;
+  }
+}

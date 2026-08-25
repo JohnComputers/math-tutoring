@@ -1,0 +1,163 @@
+/* =====================================================================
+   Legal pages + 404
+   ===================================================================== */
+
+.legal-page__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.legal-page__breadcrumb {
+  margin-bottom: var(--space-6);
+}
+
+.legal-page__breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-target);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+.legal-page__breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.legal-page__head {
+  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--line-on-light);
+}
+
+.legal-page__updated {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-on-light-muted);
+}
+
+.legal-page__layout {
+  display: grid;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .legal-page__layout {
+    /* Sidebar first in source order would hurt reading order on mobile, so the
+       document comes first and the aside is placed to its right on wide screens. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 250px);
+    gap: var(--space-12);
+  }
+}
+
+.legal-page__body {
+  min-width: 0;
+}
+
+.legal-page__aside {
+  padding: var(--space-5);
+  background: var(--surface-white);
+  border: 1px solid var(--line-on-light);
+  border-radius: var(--radius-lg);
+}
+
+@media (min-width: 900px) {
+  .legal-page__aside {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-6));
+    order: 2;
+  }
+}
+
+.legal-page__aside-title {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-on-light-muted);
+  margin-bottom: var(--space-3);
+}
+
+.legal-page__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.legal-page__links a {
+  display: block;
+  min-height: var(--tap-target);
+  padding: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-on-light);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.legal-page__links a:hover {
+  background: rgba(43, 27, 24, 0.05);
+}
+
+.legal-page__links a.is-current {
+  background: rgba(201, 92, 72, 0.12);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.legal-page__contact {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line-on-light);
+  font-size: var(--text-sm);
+  color: var(--text-on-light-muted);
+}
+
+.legal-page__contact p {
+  margin-bottom: var(--space-3);
+}
+
+/* ---- 404 --------------------------------------------------------------- */
+
+.not-found {
+  display: flex;
+  align-items: center;
+  min-height: 70vh;
+}
+
+.not-found__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.not-found__code {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 14vw, 8rem);
+  line-height: 1;
+  /* Decorative watermark: `aria-hidden` in the component, and it says nothing the
+     heading below does not. Exempt from the contrast minimum as pure decoration,
+     but lifted from 0.28 alpha so it reads as a deliberate mark rather than a
+     rendering glitch. */
+  color: rgba(246, 223, 145, 0.4);
+  margin-bottom: var(--space-2);
+}
+
+.not-found__actions {
+  margin-top: var(--space-8);
+}
+
+@media (max-width: 420px) {
+  .not-found__actions .btn {
+    width: 100%;
+  }
+}

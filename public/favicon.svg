@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Math tutoring">
+  <rect width="64" height="64" rx="14" fill="#662720"/>
+  <!-- Sigma mark in the brand cream, echoing the site's header logo. -->
+  <path d="M20 16h24v6H30.5l11 9.6L30.5 42H44v6H20v-5.4L33.4 31.6 20 21.4z"
+        fill="#F6DF91"/>
+  <circle cx="49" cy="49" r="5.5" fill="#C95C48"/>
+</svg>

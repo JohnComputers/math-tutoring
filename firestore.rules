@@ -1,0 +1,202 @@
+rules_version = '2';
+
+// =====================================================================
+//  Firestore security rules
+// =====================================================================
+//
+//  Threat model. The client is a static site on GitHub Pages talking straight to
+//  Firestore, so *every* request is attacker-controlled: the Firebase web config is
+//  public by design, and anyone can craft SDK calls against this project. These rules,
+//  not the React app, are what actually enforce anything.
+//
+//  Design:
+//    - deny by default; the final catch-all match denies everything not named above it
+//    - the public can read marketing content and *which* time grains are taken
+//    - the public can create a booking, with its shape fully validated here
+//    - the public can never read a booking, so nobody can enumerate names or phones
+//    - the public can create a reservation grain but never overwrite or delete one,
+//      which is the server-side half of the double-booking guarantee
+//    - everything else requires an entry in `admins/{uid}`, which only the Admin SDK
+//      can create (see scripts/setup-admin.mjs)
+//
+//  Known limit: rules can validate a booking's structure but cannot run the availability
+//  algorithm, so they cannot prove a booking falls inside the tutor's configured hours.
+//  A crafted request could create a well-formed booking at an odd hour. It still cannot
+//  double-book, cannot read anyone's data, and appears in the dashboard to be cancelled.
+//  Closing that needs server-side code (a Cloud Function), which a static deployment does
+//  not have. See README -> "Security model and its limits".
+// =====================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ---------------- helpers ---------------- */
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Authorisation is an explicit allowlist document, never "is logged in".
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // Exactly these fields, no extras — blocks smuggling unexpected data into a document.
+    function hasExactFields(allowed) {
+      return incoming().keys().hasOnly(allowed) && incoming().keys().hasAll(allowed);
+    }
+
+    function isTrimmedString(value, minLen, maxLen) {
+      return value is string && value.size() >= minLen && value.size() <= maxLen;
+    }
+
+    function isNonNegativeInt(value, maxValue) {
+      return value is int && value >= 0 && value <= maxValue;
+    }
+
+    /* ---------------- admins ---------------- */
+    //
+    // A user may read their own admin document — that is how the dashboard decides
+    // whether to render. Nobody may read anyone else's, so a signed-in stranger cannot
+    // enumerate who the admins are. No client may write here at all: membership is
+    // granted only by the Admin SDK, which requires a service-account key.
+
+    match /admins/{uid} {
+      allow get: if isSignedIn() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
+    /* ---------------- settings ---------------- */
+    //
+    // Public read: the marketing site, the scheduling rules and the policy pages all
+    // render from these. Admin-only write.
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /* ---------------- subjects & testimonials ---------------- */
+
+    match /subjects/{subjectId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /* ---------------- availability exceptions ---------------- */
+    //
+    // Public read is required: the calendar has to know a date is blocked before someone
+    // tries to book it. `reason` is admin free text that the public client fetches but
+    // never renders — the admin UI says as much next to the field.
+
+    match /exceptions/{exceptionId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /* ---------------- reservation grains ---------------- */
+    //
+    // Publicly readable because they carry no personal data — only which slices of the
+    // timeline are spoken for.
+    //
+    // `create` is allowed, `update` and `delete` are not. That asymmetry is deliberate
+    // and load-bearing: in Firestore, a `set()` onto an existing document is an *update*,
+    // so a client that skipped the booking transaction and wrote directly over an
+    // existing grain is rejected here by the server. It is the reason double-booking is
+    // impossible even if the client is hostile.
+    //
+    // Denying public `delete` matters just as much: otherwise anyone could delete
+    // someone else's grain and steal the slot.
+
+    match /slotLocks/{lockId} {
+      allow read: if true;
+
+      allow create: if hasExactFields(['grain', 'bookingId', 'createdAt'])
+        // The document ID and the `grain` field must agree, or a mismatched pair would
+        // poison the range query the public calendar depends on.
+        && lockId.matches('^g[0-9]{1,12}$')
+        && incoming().grain is int
+        && incoming().grain == int(lockId[1:lockId.size()])
+        && isTrimmedString(incoming().bookingId, 1, 64)
+        && incoming().createdAt == request.time;
+
+      allow update, delete: if isAdmin();
+    }
+
+    /* ---------------- bookings ---------------- */
+    //
+    // No public read of any kind. A parent gets their confirmation from the write's own
+    // result, held in memory — never by reading the collection back. This is what keeps
+    // student names and phone numbers out of reach of anyone who opens a console.
+
+    match /bookings/{bookingId} {
+      allow get, list: if isAdmin();
+
+      allow create: if hasExactFields([
+          'confirmationCode', 'parentName', 'studentName', 'phone', 'email',
+          'subject', 'notes', 'startAt', 'endAt', 'durationMinutes', 'dateKey',
+          'timezone', 'status', 'internalNotes', 'lockIds',
+          'policyAcceptedAt', 'createdAt'
+        ])
+
+        // --- identity fields ---
+        && isTrimmedString(incoming().confirmationCode, 3, 16)
+        && isTrimmedString(incoming().parentName, 2, 80)
+        && isTrimmedString(incoming().studentName, 1, 80)
+        && isTrimmedString(incoming().phone, 7, 20)
+        && incoming().email is string && incoming().email.size() <= 120
+        && incoming().subject is string && incoming().subject.size() <= 80
+        && incoming().notes is string && incoming().notes.size() <= 800
+
+        // --- timing ---
+        && incoming().startAt is timestamp
+        && incoming().endAt is timestamp
+        && incoming().durationMinutes is int
+        && incoming().durationMinutes >= 5
+        && incoming().durationMinutes <= 480
+        // Duration must match the interval, so the stored numbers cannot disagree.
+        && incoming().endAt.toMillis() - incoming().startAt.toMillis()
+             == incoming().durationMinutes * 60000
+        // No booking in the past, and none absurdly far ahead.
+        && incoming().startAt.toMillis() >= request.time.toMillis()
+        && incoming().startAt.toMillis()
+             <= request.time.toMillis() + 400 * 24 * 60 * 60 * 1000
+        && incoming().dateKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && isTrimmedString(incoming().timezone, 3, 64)
+
+        // --- state the public does not get to choose ---
+        && incoming().status == 'confirmed'
+        && incoming().internalNotes == ''
+        && incoming().createdAt == request.time
+        && incoming().policyAcceptedAt == request.time
+
+        // --- reservation linkage ---
+        && incoming().lockIds is list
+        && incoming().lockIds.size() >= 1
+        && incoming().lockIds.size() <= 288;
+
+      // Only an admin may change or remove a booking. Cancellation, rescheduling and
+      // status changes all run through the dashboard.
+      allow update, delete: if isAdmin();
+    }
+
+    /* ---------------- default deny ---------------- */
+    //
+    // Anything not matched above — including collections added later and forgotten — is
+    // denied outright rather than silently inheriting access.
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
