@@ -84,15 +84,7 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
         run: npm run build
 
-      - name: Warn if Firebase secrets are missing
-        # A build with no config still succeeds and deploys — it just shows the "setup
-        # needed" screen instead of taking bookings. Better to say so plainly in the log
-        # than to let someone discover it from the live site.
-        if: ${{ secrets.VITE_FIREBASE_PROJECT_ID == '' }}
-        run: |
-          echo "::warning title=Firebase not configured::No VITE_FIREBASE_* secrets were found. The site will deploy but scheduling and the admin dashboard will be disabled. Add them under Settings -> Secrets and variables -> Actions."
-
-      - name: Configure Pages
+          - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Upload the built site
