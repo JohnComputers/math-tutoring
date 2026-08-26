@@ -84,7 +84,7 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
         run: npm run build
 
-          - name: Configure Pages
+        - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Upload the built site
