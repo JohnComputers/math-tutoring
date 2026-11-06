@@ -40,7 +40,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -49,9 +49,8 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        # Unit tests only: the security-rules suite needs the Firestore emulator, which
-        # is worth running locally but not worth the CI minutes on every push. Run it
-        # with `npm run test:rules` before changing firestore.rules.
+        # Unit tests run here; the separate Scheduling and access control workflow
+        # runs the Firebase emulator security/concurrency suite on every push.
         run: npm test
 
       - name: Type check
@@ -96,6 +95,7 @@ jobs:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     environment:
       name: github-pages
@@ -105,3 +105,6 @@ jobs:
       - name: Publish to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          # Pages publication can stay in updating_pages beyond the default 10 minutes.
+          timeout: 1200000
