@@ -95,7 +95,6 @@ jobs:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 25
 
     environment:
       name: github-pages
@@ -105,6 +104,3 @@ jobs:
       - name: Publish to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          # Pages publication can stay in updating_pages beyond the default 10 minutes.
-          timeout: 1200000
