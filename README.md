@@ -599,3 +599,6 @@ payments online, or serve students outside the US), have a qualified lawyer revi
 before relying on them.
 
 The same note appears in the admin Legal editor, where you will actually be reading it.
+
+
+The tutoring manager now also supports verified personal accounts in isolated `workspaces/{uid}` namespaces. Registration never grants access to this site’s admin area or root-level bookings. The existing administrator keeps the original shared integration. Firestore rules and the shared scheduling adapter must stay consistent in both repositories.
