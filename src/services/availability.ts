@@ -18,11 +18,11 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  setDoc,
-  updateDoc,
   where,
 } from 'firebase/firestore';
 import { db } from '@/firebase/config';
+import { getDoc } from 'firebase/firestore';
+import { effectiveSettings,publishAvailability } from '@/shared/engine';
 import type { AvailabilityException, ExceptionKind, IsoDate } from '@/types';
 import { logError } from '@/utils/errors';
 
@@ -65,7 +65,7 @@ export async function getExceptions(
     logError('availability.getExceptions', error);
     // Returning [] means "no overrides", i.e. the normal weekly schedule applies. That is
     // the safe direction: it can never invent availability that the weekly grid denies.
-    return [];
+    throw error;
   }
 }
 
@@ -80,33 +80,19 @@ export async function getUpcomingExceptions(
     return snapshot.docs.map((d) => toException(d.id, d.data()));
   } catch (error) {
     logError('availability.getUpcomingExceptions', error);
-    return [];
+    throw error;
   }
 }
 
-export async function createException(
-  exception: Omit<AvailabilityException, 'id' | 'createdAt'>,
-): Promise<string> {
-  const ref = doc(collection(db(), COLLECTION));
-  await setDoc(ref, {
-    ...exception,
-    // `blockAll` ignores periods; store an empty array so the shape stays consistent.
-    periods: exception.kind === 'blockAll' ? [] : exception.periods,
-    createdAt: serverTimestamp(),
-  });
-  return ref.id;
+async function publishExceptionChange(change:{add?:AvailabilityException;remove?:string;patch?:Partial<AvailabilityException>}){
+ const snap=await getDoc(doc(db(),'settings','scheduling'));const settings=effectiveSettings(snap.data());
+ const allSnap=await getDocs(collection(db(),COLLECTION));let all=allSnap.docs.map(d=>toException(d.id,d.data()));
+ if(change.remove)all=all.filter(e=>e.id!==change.remove);if(change.patch)all=all.map(e=>e.id===change.patch!.id?{...e,...change.patch}:e);if(change.add)all.push(change.add);
+ await publishAvailability(settings,all,settings.revision,tx=>{if(change.remove)tx.delete(doc(db(),COLLECTION,change.remove));if(change.patch){const{id,...patch}=change.patch;tx.update(doc(db(),COLLECTION,id!),patch);}if(change.add){const{id,...data}=change.add;tx.set(doc(db(),COLLECTION,id),{...data,createdAt:serverTimestamp()});}});
 }
-
-export async function updateException(
-  id: string,
-  patch: Partial<Omit<AvailabilityException, 'id'>>,
-): Promise<void> {
-  await updateDoc(doc(db(), COLLECTION, id), patch);
-}
-
-export async function deleteException(id: string): Promise<void> {
-  await deleteDoc(doc(db(), COLLECTION, id));
-}
+export async function createException(exception:Omit<AvailabilityException,'id'|'createdAt'>):Promise<string>{const id=doc(collection(db(),COLLECTION)).id;await publishExceptionChange({add:{...exception,id}});return id;}
+export async function updateException(id:string,patch:Partial<Omit<AvailabilityException,'id'>>):Promise<void>{await publishExceptionChange({patch:{...patch,id}});}
+export async function deleteException(id:string):Promise<void>{await publishExceptionChange({remove:id});}
 
 /**
  * Remove exceptions for dates that have passed.

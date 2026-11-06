@@ -176,7 +176,9 @@ export type ExceptionKind =
   /** Replaces the weekly schedule for that date with `periods`. */
   | 'replace'
   /** Adds `periods` on top of the weekly schedule for that date. */
-  | 'add';
+  | 'add'
+  /** Removes these windows from the day's resolved hours. */
+  | 'subtract';
 
 export interface AvailabilityException {
   id: string;

@@ -25,6 +25,9 @@ import { getLegalSettings, getSchedulingSettings, getSiteSettings } from '@/serv
 import { getSubjects } from '@/services/subjects';
 import { getTestimonials } from '@/services/testimonials';
 import { handleError } from '@/utils/errors';
+import { doc,onSnapshot } from 'firebase/firestore';
+import { db } from '@/firebase/config';
+import { effectiveSettings } from '@/shared/engine';
 
 /**
  * One provider owns all public content.
@@ -131,6 +134,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(()=>{if(!configured)return;return onSnapshot(doc(db(),'settings','scheduling'),snapshot=>setState(prev=>({...prev,scheduling:effectiveSettings(snapshot.data())})),()=>setState(prev=>({...prev,error:'Could not verify live availability. Booking is temporarily unavailable.',scheduling:{...prev.scheduling,weekly:Object.fromEntries([0,1,2,3,4,5,6].map(d=>[d,{enabled:false,periods:[]}])) as unknown as SchedulingSettings['weekly']}})));},[configured]);
 
   useEffect(() => {
     applyTheme(state.site.theme);

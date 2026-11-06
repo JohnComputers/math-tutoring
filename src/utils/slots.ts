@@ -49,6 +49,24 @@ export const SLOT_GRAIN_MINUTES = 5;
  */
 export const MAX_LOCKS_PER_BOOKING = MINUTES_PER_DAY / SLOT_GRAIN_MINUTES;
 
+/** Normalize overnight weekly windows into adjacent local dates without fixed UTC offsets. */
+export function normalizeWeekly(weekly: SchedulingSettings['weekly']): SchedulingSettings['weekly'] {
+  const out=Object.fromEntries([0,1,2,3,4,5,6].map(d=>[d,{enabled:weekly[d as Weekday]?.enabled??false,periods:[]}])) as unknown as SchedulingSettings['weekly'];
+  for(let day=0;day<7;day++){
+    const original=weekly[day as Weekday];if(!original?.enabled)continue;
+    for(const p of original.periods){
+      if(!Number.isInteger(p.start)||!Number.isInteger(p.end)||p.start<0||p.start>=1440||p.end<0||p.end>1440||p.start===p.end)throw new Error('Choose distinct start and end times between midnight and 24:00.');
+      if(p.end>p.start)out[day as Weekday].periods.push({...p});
+      else{
+        out[day as Weekday].periods.push({start:p.start,end:1440});
+        if(p.end>0){const next=((day+1)%7) as Weekday;out[next].enabled=true;out[next].periods.push({start:0,end:p.end});}
+      }
+    }
+  }
+  for(const day of [0,1,2,3,4,5,6])out[day as Weekday].periods=mergePeriods(out[day as Weekday].periods);
+  return out;
+}
+
 const MS_PER_MINUTE = 60_000;
 
 /* ------------------------------------------------------------------ */
@@ -184,7 +202,14 @@ export function resolvePeriodsForDate(
   }
 
   const additions = relevant.filter((e) => e.kind === 'add').flatMap((e) => e.periods);
-  return mergePeriods([...base, ...additions]);
+  let periods = mergePeriods([...base, ...additions]);
+  for (const block of relevant.filter(e=>e.kind==='subtract').flatMap(e=>e.periods)) {
+    periods = periods.flatMap(p=>block.end<=p.start||block.start>=p.end?[p]:[
+      ...(block.start>p.start?[{start:p.start,end:block.start}]:[]),
+      ...(block.end<p.end?[{start:block.end,end:p.end}]:[]),
+    ]);
+  }
+  return mergePeriods(periods);
 }
 
 /* ------------------------------------------------------------------ */

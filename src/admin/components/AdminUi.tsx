@@ -179,7 +179,7 @@ export function StatusPill({ status }: { status: string }) {
         ? 'Completed'
         : status === 'cancelled'
           ? 'Cancelled'
-          : 'No-show';
+          : status === 'noShow' ? 'No-show' : status === 'tentative' ? 'Tentative' : status;
 
   return <span className={`status-pill status-pill--${tone}`}>{label}</span>;
 }

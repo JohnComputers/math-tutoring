@@ -1,10 +1,13 @@
+import { collection,onSnapshot,query,where } from 'firebase/firestore';
+import { db } from '@/firebase/config';
+import { dayGrainBounds } from '@/utils/slots';
+import { utcDay } from '@/shared/engine';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import type { AvailabilityException, BookingFormValues, IsoDate, TimeSlot } from '@/types';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { useMediaQuery } from '@/hooks/useMotion';
 import { useSiteContent } from '@/hooks/useSiteContent';
-import { getExceptions } from '@/services/availability';
 import { type BookingReceipt, createBooking, getOccupiedGrains } from '@/services/bookings';
 import { generateSlots } from '@/utils/slots';
 import { SlotTakenError, ValidationError, handleError } from '@/utils/errors';
@@ -92,27 +95,8 @@ export function SchedulePage() {
     setSlotsError(null);
   }, [location.key]);
 
-  /* ---- exceptions: fetched once for the whole bookable window ---- */
-  useEffect(() => {
-    if (!configured) return;
-    let active = true;
-
-    const from = todayDateKey(scheduling.timezone);
-    const to = addDays(from, scheduling.maximumAdvanceDays + 1);
-
-    void getExceptions(from, to)
-      .then((result) => {
-        if (!active) return;
-        setExceptions(result);
-      })
-      .finally(() => {
-        if (active) setExceptionsLoaded(true);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [configured, scheduling.timezone, scheduling.maximumAdvanceDays]);
+  /* Live exceptions fail closed if the server cannot verify them. */
+  useEffect(()=>{if(!configured)return;const from=todayDateKey(scheduling.timezone),to=addDays(from,scheduling.maximumAdvanceDays+1);setExceptionsLoaded(false);return onSnapshot(query(collection(db(),'exceptions'),where('date','>=',from),where('date','<=',to)),s=>{setExceptions(s.docs.map(d=>({id:d.id,...d.data()} as AvailabilityException)));setExceptionsLoaded(true);setSlotsError(null);},()=>{setExceptionsLoaded(true);setSlotsError('Could not verify availability. Please reload before booking.');});},[configured,scheduling.timezone,scheduling.maximumAdvanceDays]);
 
   /* ---- reservations for the selected date ---- */
   const loadOccupied = useCallback(
@@ -140,10 +124,17 @@ export function SchedulePage() {
     [scheduling],
   );
 
-  useEffect(() => {
-    if (!selectedDate || !configured) return;
-    void loadOccupied(selectedDate);
-  }, [selectedDate, configured, loadOccupied]);
+  useEffect(()=>{
+    if(!selectedDate||!configured)return;
+    setSlotsLoading(true);setSlotsError(null);
+    const {first,last}=dayGrainBounds(selectedDate,scheduling.timezone,scheduling.bufferMinutes);
+    let locks=new Set<number>(),claims=new Set<number>(),ready=0;
+    const next=()=>{setOccupiedGrains(new Set([...locks,...claims]));if(ready===3)setSlotsLoading(false);};
+    const fail=()=>{setSlotsLoading(false);setSlotsError('Could not verify the latest reservations. Reconnect and reload.');};
+    const a=onSnapshot(query(collection(db(),'slotLocks'),where('grain','>=',first),where('grain','<=',last)),s=>{locks=new Set(s.docs.map(d=>Number(d.data().grain)));ready|=1;next();},fail);
+    const b=onSnapshot(query(collection(db(),'dayClaims'),where('day','>=',utcDay(first)),where('day','<=',utcDay(last))),s=>{claims=new Set();s.docs.forEach(d=>{const v=d.data();String(v.bitmap??'').split('').forEach((bit,i)=>{if(bit==='1')claims.add(Number(v.day)*288+i);});});ready|=2;next();},fail);
+    return()=>{a();b();};
+  },[selectedDate,configured,scheduling]);
 
   /* ---- derived slots ---- */
   const slots = useMemo(() => {

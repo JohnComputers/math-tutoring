@@ -116,7 +116,7 @@ export function friendlyError(error: unknown, fallback = 'Something went wrong. 
 /** Log the developer-facing detail without leaking it into the UI. */
 export function logError(context: string, error: unknown): void {
   const fb = asFirebaseError(error);
-  console.error(`[${context}]`, fb.code ? `${fb.code}:` : '', fb.message ?? error);
+  console.error(`[${context}]`, fb.code ?? 'operation-failed');
 }
 
 /** Log and translate in one step — the pattern nearly every catch block wants. */

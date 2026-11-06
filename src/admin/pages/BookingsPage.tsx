@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Booking, BookingStatus } from '@/types';
 import { useSiteContent } from '@/hooks/useSiteContent';
+import { watchBookings } from '@/shared/engine';
 import {
   cancelBooking,
   getBookings,
@@ -94,6 +95,7 @@ export function BookingsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+  useEffect(()=>watchBookings(rows=>{const from=range==='past'||range==='all'?undefined:todayKey;const to=range==='today'?todayKey:range==='week'?addDays(todayKey,7):range==='past'?addDays(todayKey,-1):undefined;setBookings(rows.filter(b=>(!from||b.dateKey>=from)&&(!to||b.dateKey<=to)&&(status==='all'||b.status===status)).sort((a,b)=>b.startAt.toMillis()-a.startAt.toMillis()).slice(0,300));setLoading(false);},()=>setError('Could not receive live bookings. Reload to reconnect.')),[range,status,todayKey]);
 
   const visible = useMemo(() => {
     const needle = search.trim().toLowerCase();

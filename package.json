@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "setup:admin": "node scripts/setup-admin.mjs",
     "seed": "node scripts/seed.mjs",
-    "test:rules": "node scripts/free-emulator-ports.mjs && firebase emulators:exec --only firestore,auth --project rules-test \"vitest run --config vitest.rules.config.ts\"",
+    "test:rules": "firebase emulators:exec --only firestore,auth --project rules-test \"vitest run --config vitest.rules.config.ts\"",
     "test:all": "npm run test && npm run test:rules",
     "emulators": "firebase emulators:start --project demo-math-tutoring",
     "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes,storage",

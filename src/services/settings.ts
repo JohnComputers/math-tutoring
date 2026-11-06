@@ -14,6 +14,9 @@ import { db } from '@/firebase/config';
 import type { LegalSettings, SchedulingSettings, SiteSettings } from '@/types';
 import { deepMerge } from '@/utils/merge';
 import { logError } from '@/utils/errors';
+import { collection,getDocs } from 'firebase/firestore';
+import type { AvailabilityException } from '@/types';
+import { effectiveSettings,publishAvailability } from '@/shared/engine';
 import { DEFAULT_LEGAL, DEFAULT_SCHEDULING, DEFAULT_SITE } from './defaults';
 
 const SETTINGS = 'settings';
@@ -36,7 +39,7 @@ export function getSiteSettings(): Promise<SiteSettings> {
 }
 
 export function getSchedulingSettings(): Promise<SchedulingSettings> {
-  return readSettings('scheduling', DEFAULT_SCHEDULING, 'settings.getSchedulingSettings');
+  return getDoc(doc(db(),SETTINGS,'scheduling')).then(s=>deepMerge(DEFAULT_SCHEDULING,s.data()??{}));
 }
 
 export function getLegalSettings(): Promise<LegalSettings> {
@@ -55,14 +58,10 @@ export async function updateSiteSettings(patch: Partial<SiteSettings>): Promise<
   );
 }
 
-export async function updateSchedulingSettings(
-  patch: Partial<SchedulingSettings>,
-): Promise<void> {
-  await setDoc(
-    doc(db(), SETTINGS, 'scheduling'),
-    { ...patch, updatedAt: serverTimestamp() },
-    { merge: true },
-  );
+export async function updateSchedulingSettings(patch:Partial<SchedulingSettings>):Promise<void>{
+ const snap=await getDoc(doc(db(),SETTINGS,'scheduling'));const settings=effectiveSettings(snap.data());
+ const exceptions=await getDocs(collection(db(),'exceptions'));
+ await publishAvailability(deepMerge(settings,patch),exceptions.docs.map(d=>({id:d.id,...d.data()} as AvailabilityException)),settings.revision);
 }
 
 export async function updateLegalSettings(patch: Partial<LegalSettings>): Promise<void> {
