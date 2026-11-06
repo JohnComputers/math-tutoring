@@ -441,54 +441,19 @@ do not exist (the hour skipped each spring) are not offered rather than quietly 
 
 ## 10. Security model and its limits
 
-### What is protected
+The public site and [Tutoring Manager](https://johncomputers.github.io/tutoring-manager/) share the existing `johns-tutoring` Firebase project, owner credentials, `bookings`, and original 5-minute `slotLocks`. The manager adds private CRM/notes/payment collections; the public site cannot read them.
 
-- **Bookings cannot be read by anyone but you.** Not by the public, not by a signed-in
-  stranger. Names and phone numbers are not reachable from a browser console.
-- **Nobody can promote themselves to admin.** The `admins` collection is not client-writable
-  at all — only the Admin SDK, with a service-account key on your machine, can add to it.
-- **Site content, subjects, availability and policies are read-only to the public.**
-- **Reservations cannot be overwritten or deleted by the public**, so a slot cannot be
-  stolen or double-booked.
-- **Bookings are validated server-side** — field types, lengths, a status the client does
-  not get to choose, a duration that must match the interval, and no bookings in the past.
-- **Uploads must be images** under 10 MB, from an admin account.
-- **Everything not explicitly allowed is denied** by a catch-all rule at the bottom.
+- Only the existing `admins/{uid}` allowlist grants owner access. Clients cannot change membership. Public account creation is disabled in the live project.
+- Public booking documents and all CRM/payment/notification settings are unreadable to anonymous visitors and signed-in non-admins.
+- Public writes must claim a vacant interval in `dayClaims` in the same atomic request. Rules verify the exact bitmap delta, so omitting or forging a grain list cannot produce an overlapping lesson.
+- Revisioned `availabilityDays` bitmaps enforce configured hours and blocked intervals at the Firestore rules boundary. A matching migration marker gates the coordinated cutover. These are enforcement records, not a duplicate calendar.
+- Both apps use `src/shared/engine.ts` for online transactional creates, reschedules, cancellations, reservation release, and availability publication. Existing lessons remain visible when hours change. Only locks actually owned by a booking can be released.
+- Scheduling settings, exceptions, claims, and grain occupancy update live in the public picker; failed availability reads do not reopen times.
+- Existing public marketing content, subjects, testimonials, legal pages, and the optional owner photo uploader remain available. No payment processing or student email was added to this public site.
 
-All of the above is covered by tests that run against the real Firestore emulator — 38
-security-rule tests and 17 concurrency tests. See [section 11](#11-testing).
+Rules enforce actual UTC intervals, configured lengths, notice, buffers, revision, allowed hours, the correct local date label, same-day policy, and the complete final local date of the advance window. Public permit documents include timezone offsets and clock transitions so those date checks respect DST. Availability boundaries use five-minute increments. Trusted owner code is privileged, so its scheduling edits must keep using the shared transaction service. Do not deploy one repository's old rules or reservation code independently of the other.
 
-### The honest limitation
-
-Firestore rules can validate a booking's **shape**, but they cannot run your availability
-algorithm. They cannot tell that 3 AM on a Tuesday is outside your hours.
-
-So a determined person crafting API calls directly could create a structurally valid booking
-at an odd time. They **cannot** double-book, cannot read anyone's data, and cannot change
-your site. The booking simply appears in your dashboard, where you cancel it.
-
-Closing that last gap requires server-side code — a Cloud Function that validates against
-your availability before writing. That needs the Blaze plan and a small backend, which is
-outside what a static GitHub Pages site is. For a personal tutoring business the trade is
-reasonable: the realistic failure mode is a nuisance booking, not a data breach.
-
-If you later want it closed, the shape of the change is: move `createBooking` into a
-callable Cloud Function, and change the `bookings` rule to `allow create: if false` so only
-the function can write them.
-
-### Student data
-
-The booking form collects a parent name, student name, and phone number — plus optional
-email, subject and notes. That is the minimum needed to schedule and confirm a session.
-
-- Student names are never published on the site and never used in testimonials
-- The form tells parents a first name or nickname is fine
-- The notes field warns against medical, financial or other sensitive information
-- No payment details are collected anywhere
-- No analytics or advertising trackers are loaded
-
-The testimonials editor carries a prominent warning against publishing student names,
-because the Privacy Policy promises exactly that.
+See the manager's [audit and setup documentation](https://github.com/JohnComputers/tutoring-manager#readme) for schema, migrations, free scheduled owner reminders, operational limits, and recovery. The stronger availability enforcement requires no Cloud Functions or billing upgrade.
 
 ---
 
@@ -496,7 +461,7 @@ because the Privacy Policy promises exactly that.
 
 ```bash
 npm test             # 74 unit tests — pure logic, instant, no setup
-npm run test:rules   # 55 tests against the Firestore emulator (needs Java 11+)
+npm run test:rules   # security and concurrent-booking tests against Firestore (Java 17+)
 npm run test:all     # both
 ```
 
@@ -507,10 +472,10 @@ exception precedence, and form validation.
 **Emulator tests** are the ones that matter most, because they test the server rather than
 the app:
 
-- *Security rules (38)* — every permission boundary, from both an anonymous and a
+- *Security rules (27)* — every permission boundary, from both an anonymous and a
   signed-in-but-not-admin perspective. Including: the public cannot read bookings, cannot
   overwrite a reservation, and cannot make themselves an admin.
-- *Concurrency (17)* — real transactions against the real rules. Eight simultaneous
+- *Transactions (13)* — real transactions against the real rules. Eight simultaneous
   bookings for one slot produce exactly one success. Overlapping durations conflict.
   Buffers are respected. Cancelling frees the time. A booking cannot release a reservation
   it does not own.
@@ -557,9 +522,7 @@ storage.rules
 scripts/setup-admin.mjs Grants admin access. Needs a service-account key.
 ```
 
-The rule the structure enforces: **UI components never import the Firebase SDK.** They call
-a function in `services/`. That keeps data access testable and means a schema change has one
-place to happen.
+Reservation writes belong in `src/shared/engine.ts`; keep that file and the Firestore rules identical in both repositories. UI providers own live subscriptions, while services expose read/query and content-editing helpers. Scheduling changes must never bypass the shared transaction path.
 
 ---
 

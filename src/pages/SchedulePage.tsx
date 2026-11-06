@@ -46,9 +46,12 @@ export function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState<IsoDate | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [duration, setDuration] = useState<number>(scheduling.defaultDurationMinutes);
+  const durationChosen=useRef(false);
+  const selectedTimezone=useRef(scheduling.timezone);
 
   const [exceptions, setExceptions] = useState<AvailabilityException[]>([]);
   const [exceptionsLoaded, setExceptionsLoaded] = useState(false);
+  const [availabilityError,setAvailabilityError]=useState<string|null>(null);
   const [occupiedGrains, setOccupiedGrains] = useState<Set<number>>(new Set());
 
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -68,7 +71,7 @@ export function SchedulePage() {
 
   // Keep the duration in step with the settings once they load.
   useEffect(() => {
-    setDuration(scheduling.defaultDurationMinutes);
+    if(!durationChosen.current)setDuration(scheduling.defaultDurationMinutes);
   }, [scheduling.defaultDurationMinutes]);
 
   /**
@@ -96,7 +99,7 @@ export function SchedulePage() {
   }, [location.key]);
 
   /* Live exceptions fail closed if the server cannot verify them. */
-  useEffect(()=>{if(!configured)return;const from=todayDateKey(scheduling.timezone),to=addDays(from,scheduling.maximumAdvanceDays+1);setExceptionsLoaded(false);return onSnapshot(query(collection(db(),'exceptions'),where('date','>=',from),where('date','<=',to)),s=>{setExceptions(s.docs.map(d=>({id:d.id,...d.data()} as AvailabilityException)));setExceptionsLoaded(true);setSlotsError(null);},()=>{setExceptionsLoaded(true);setSlotsError('Could not verify availability. Please reload before booking.');});},[configured,scheduling.timezone,scheduling.maximumAdvanceDays]);
+  useEffect(()=>{if(!configured)return;const from=todayDateKey(scheduling.timezone),to=addDays(from,scheduling.maximumAdvanceDays+1);setExceptionsLoaded(false);return onSnapshot(query(collection(db(),'exceptions'),where('date','>=',from),where('date','<=',to)),{includeMetadataChanges:true},s=>{setExceptionsLoaded(true);if(s.metadata.fromCache){setAvailabilityError('Connect to verify the latest availability before booking.');return;}setExceptions(s.docs.map(d=>({id:d.id,...d.data()} as AvailabilityException)));setAvailabilityError(null);},()=>{setExceptionsLoaded(true);setAvailabilityError('Could not verify availability. Please reload before booking.');setSelectedSlot(null);});},[configured,scheduling.timezone,scheduling.maximumAdvanceDays]);
 
   /* ---- reservations for the selected date ---- */
   const loadOccupied = useCallback(
@@ -165,12 +168,14 @@ export function SchedulePage() {
   };
 
   const handleSelectSlot = (slot: TimeSlot) => {
+    selectedTimezone.current=scheduling.timezone;
+    durationChosen.current=true;
     setSelectedSlot(slot);
     setSubmitError(null);
   };
 
   const goToDetails = () => {
-    if (!selectedSlot) return;
+    if (!selectedSlot || availabilityError || slotsError) return;
     setStep('details');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     window.setTimeout(() => stepHeadingRef.current?.focus(), 220);
@@ -178,6 +183,7 @@ export function SchedulePage() {
 
   const handleSubmit = async (values: BookingFormValues) => {
     if (!selectedSlot || !selectedDate) return;
+    if(selectedTimezone.current!==scheduling.timezone||!scheduling.sessionDurations.includes(duration)){setSubmitError('The booking options changed. Go back and choose your date, time, and session length again.');return;}
 
     setSubmitting(true);
     setSubmitError(null);
@@ -334,6 +340,7 @@ export function SchedulePage() {
                       className={`duration-option ${duration === minutes ? 'is-selected' : ''}`.trim()}
                       aria-pressed={duration === minutes}
                       onClick={() => {
+                        durationChosen.current=true;
                         setDuration(minutes);
                         setSelectedSlot(null);
                       }}
@@ -362,16 +369,16 @@ export function SchedulePage() {
                   selectedStart={selectedSlot?.start ?? null}
                   onSelect={handleSelectSlot}
                   loading={slotsLoading}
-                  error={slotsError}
+                  error={availabilityError ?? slotsError}
                   scheduling={scheduling}
-                  onRetry={selectedDate ? () => void loadOccupied(selectedDate) : undefined}
+                  onRetry={availabilityError ? () => window.location.reload() : selectedDate ? () => void loadOccupied(selectedDate) : undefined}
                 />
               </div>
             </div>
 
             {/* Sticky continue bar: on a phone the chosen slot may have scrolled away,
                 so the confirmation of what is selected travels with the button. */}
-            {selectedSlot && selectedDate && (
+            {selectedSlot && selectedDate && !availabilityError && !slotsError && (
               <div className="booking-continue">
                 <div className="booking-continue__summary">
                   <Icon name="check-circle" size={18} />
